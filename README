@@ -1,0 +1,16 @@
+XY model with Wolff updates
+
+Issue the following commands to download and build the prerequisites:
+
+$ wget http://luscher.web.cern.ch/luscher/ranlux/ranlux-3.4.tar.gz
+$ tar zxvf ranlux-3.4.tar.gz
+$ cd ranlux-3.4
+$ make
+$ cd ..
+$ wget https://github.com/GUDHI/gudhi-devel/releases/download/tags/gudhi-release-3.1.1/gudhi.3.1.1.tar.gz
+$ tar zxvf gudhi.3.1.1.tar.gz
+
+Then type make to build the project.
+
+Tak-Shing Chan
+6 April 2020

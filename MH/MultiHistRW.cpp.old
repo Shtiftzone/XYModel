@@ -1,0 +1,120 @@
+#include "MultiHistRW.h"
+#include <cmath>
+
+#include <iostream>
+
+using std::cerr;
+using std::cout;
+using std::endl;
+
+double LnZ(double beta, int nrun, double *Beta, vector<double> *d, double *LogZ)
+{
+  double res, LogN[nrun];
+  for (int i=0; i<nrun; i++) {
+    LogN[i]=log(static_cast<double>(d[i].size()));
+  }
+  bool init=true;
+  for(int i=0; i<nrun; i++){
+    vector<double>::iterator cur=d[i].begin();
+    vector<double>::iterator last=d[i].end();
+    for(; cur!=last; cur++){
+      double E=(*cur);
+      double LogDen=LogN[0]-LogZ[0]+(beta-Beta[0])*E;
+      for(int j=1; j<nrun; j++){
+	double LogDen_term=LogN[j]-LogZ[j]+(beta-Beta[j])*E;
+	double diff=LogDen-LogDen_term;
+	if(diff>0.0)
+	  LogDen+=log1p(exp(-diff));
+	else
+	  LogDen=LogDen_term+log1p(exp(diff));
+      }
+      if(init==true) {
+	res=-LogDen;
+	init=false;
+      } else {
+	double diff=res+LogDen; //Plus sign is correct!
+	if(diff>0)
+	  res+=log1p(exp(-diff));
+	else
+	  res=-LogDen+log1p(exp(diff));
+      }
+    }
+  }
+  return res;
+}
+
+double LnO_n(vector<double> *O, double n, double beta, int nrun, double *Beta, vector<double> *d, double *LogZ)
+{
+  double res, LogN[nrun];
+  for (int i=0; i<nrun; i++) {
+    if(d[i].size()!=O[i].size())
+	    cerr<<"Errore!"<<d[i].size()<<" "<<O[i].size()<<endl;
+    LogN[i]=log(static_cast<double>(d[i].size()));
+  }
+  bool init=true;
+  for(int i=0; i<nrun; i++){
+    vector<double>::iterator cur=d[i].begin();
+    vector<double>::iterator last=d[i].end();
+    vector<double>::iterator curO=O[i].begin();
+    for(; cur!=last; cur++, curO++){
+      double E=(*cur);
+      double LogDen=LogN[0]-LogZ[0]+(beta-Beta[0])*E;
+      for(int j=1; j<nrun; j++){
+	double LogDen_term=LogN[j]-LogZ[j]+(beta-Beta[j])*E;
+	double diff=LogDen-LogDen_term;
+	if(diff>0.0)
+	  LogDen+=log1p(exp(-diff));
+	else
+	  LogDen=LogDen_term+log1p(exp(diff));
+      }
+      double LogO=n*log((*curO));
+      LogDen-=LogO;
+      if(init==true) {
+	res=-LogDen;
+	init=false;
+      } else {
+	double diff=res+LogDen; //Plus sign is correct!
+	if(diff>0)
+	  res+=log1p(exp(-diff));
+	else
+	  res=-LogDen+log1p(exp(diff));
+      }
+    }
+  }
+  return res;
+}
+
+void MultiHistRw(int nrun, double *beta, vector<double> *d, double *LogZ)
+{
+
+  double new_LogZ[nrun];
+  double Delta2;
+
+  do {
+    //Shift LogZ
+    double A=(LogZ[0]+LogZ[nrun-1])/2.0;
+    //double A=LogZ[nrun/2];
+    for(int k=0; k<nrun; k++) LogZ[k]-=A;
+
+    //Calculate new_LogZ
+    for(int k=0; k<nrun; k++) new_LogZ[k]=LnZ(beta[k], nrun, beta, d, LogZ);
+
+    //Calculate Delta2 for stopping condition
+    Delta2=0.0;
+    for(int k=0; k<nrun; k++) {
+      double term=expm1(new_LogZ[k]-LogZ[k]);
+      Delta2+=term*term;
+    }
+  
+    //Save new values of LogZ
+    for(int k=0; k<nrun; k++)
+      LogZ[k]=new_LogZ[k];
+
+  //cerr<<Delta2<<" #";
+  //for(int k=0; k<nrun; k++)
+  //  cerr<<" "<<LogZ[k];
+  //cerr<<endl;
+
+  } while (Delta2>1.e-14);
+
+}

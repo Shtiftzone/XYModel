@@ -1,0 +1,42 @@
+
+********************************************************************************
+
+                           RANLUX --- Version 3.4
+
+********************************************************************************
+
+
+Documentation
+-------------
+
+doc/guide.pdf    User's guide for the programs in this directory.
+
+doc/notes.pdf    Description of the underlying algorithms.
+
+
+Programs
+--------
+
+ranlxd.c         Double-precision generator and associated utility programs.
+
+ranlxs.c         Single-precision generator and associated utility programs.
+
+ranlux_common.c  Basic functions used in ranlxd.c and ranlxs.c.
+
+testlx.c         Main program that checks whether the generators work properly
+                 on the chosen machine and with the chosen compiler options.
+
+timelx.c         Main program that measures the processor time required per
+                 generated random number.
+
+The functions in ranlux_common.c are not intended to be used by any programs
+other than those in ranlxd.c and ranlxs.c
+
+
+Include file
+------------
+
+ranlux.h       Function allusions (prototypes) of the externally accessible
+               functions in the modules ranlxd.c and ranlxs.c.
+
+********************************************************************************
