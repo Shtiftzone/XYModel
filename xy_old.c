@@ -22,7 +22,6 @@
 #include <math.h>
 #include <string.h>
 #include "ranlux.h"
-#include <assert.h>
 
 #define NRAND 360
 #define K 100
@@ -149,31 +148,6 @@ void wolff_update(double T) {
     }
 }
 
-#define WIN 1000
-
-double compute_magnetization(double *theta) {
-    double mx = 0.0, my = 0.0;
-    for (int i = 0; i < NSPIN; ++i) {
-        mx += cos(theta[i]);
-        my += sin(theta[i]);
-    }
-    mx /= NSPIN;
-    my /= NSPIN;
-    return sqrt(mx * mx + my * my);
-}
-
-int mann_whitney_u(double *x, double *y, int n) {
-    // Naive U-test assuming no ties, small n
-    int u = 0;
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++)
-            if (x[i] < y[j])
-                u++;
-
-    int Ucritical = (int)(0.05 * n * n); // 5% significance, rough estimate
-    return (u > Ucritical && u < n * n - Ucritical); // True if distributions overlap
-}
-
 int main(int argc, char *argv[]) {
     int Ntherm = (int)(0.5 * L * L);
     int Ndecorr = 50;
@@ -183,7 +157,6 @@ int main(int argc, char *argv[]) {
                 argv[0]);
         return EXIT_FAILURE;
     }
-	int adaptive = 0;
     theta = malloc(NSPIN * sizeof *theta);
     if (!theta) {
         fprintf(stderr, "Couldn't allocate memory\n");
@@ -196,49 +169,13 @@ int main(int argc, char *argv[]) {
     FILE *Bfile = file_notna(argv[5]);
     FILE *Efile = file_notna(argv[6]);
     FILE *Ffile = file_notna(argv[7]);
-    if (argc == 9) {
+    if (argc == 9)
         Ndecorr = (int) strtol(argv[8], NULL, 10);
-    }
-    if (argc >= 10 && strcmp(argv[9], "-adaptive") == 0) {
-	adaptive = 1;
-	printf("Adaptive thermalization enabled\n");
-    }
+
     for (int i = 0; i < NSPIN; i++)
         theta[i] = 2 * M_PI * dranlux();
-    if (adaptive) {
-        double *window1 = malloc(WIN * sizeof(double));
-        double *window2 = malloc(WIN * sizeof(double));
-        assert(window1 && window2);
-
-        int step = 0;
-        int converged = 0;
-        while (!converged) {
-            for (int i = 0; i < WIN; ++i) {
-                wolff_update(T);
-                window1[i] = compute_magnetization(theta);
-                step++;
-            }
-
-            for (int i = 0; i < WIN; ++i) {
-                wolff_update(T);
-                window2[i] = compute_magnetization(theta);
-                step++;
-            }
-
-            if (mann_whitney_u(window1, window2, WIN)) {
-                printf("Thermalized after %d steps\n", step);
-                converged = 1;
-            }
-
-            // Move window2 → window1 for next round
-            memcpy(window1, window2, WIN * sizeof(double));
-        }
-        free(window1);
-        free(window2);
-    } else {
     for (int i = 0; i < Ntherm; i++)
         wolff_update(T);
-    }
 
     while (Nconf--) {
         if (Mefile)

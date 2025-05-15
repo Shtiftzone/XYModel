@@ -83,9 +83,9 @@ void write_filtered_topology(double *theta, FILE *efile, FILE *bfile, FILE *ffil
     double mean = mean_angle(theta);
     double euler_sum = 0.0, b0_sum = 0.0, b1_sum = 0.0, b2_sum = 0.0;
     double F0_sum = 0.0, F1_sum = 0.0, F2_sum = 0.0;
-    double euler_values[K];
+    /*double euler_values[K];
     double b0_values[K], b1_values[K], b2_values[K];
-    double F0_values[K], F1_values[K], F2_values[K];
+    double F0_values[K], F1_values[K], F2_values[K];*/
 
     for (int k = 0; k < K; k++) {
         double thresh = (double)k / K;
@@ -95,7 +95,7 @@ void write_filtered_topology(double *theta, FILE *efile, FILE *bfile, FILE *ffil
         }
 
         int euler = pbceuler(conf);
-        euler_values[k] = euler;
+        /*euler_values[k] = euler;*/
         euler_sum += euler;
 
         int b0 = 0, b2 = 1;
@@ -126,9 +126,9 @@ void write_filtered_topology(double *theta, FILE *efile, FILE *bfile, FILE *ffil
         }
         if (memchr(conf, 0, NSPIN * sizeof(int)) == NULL) b2 = 1; else b2 = 0;
         int b1 = b0 + b2 - euler;
-        b0_values[k] = b0;
+        /*b0_values[k] = b0;
         b1_values[k] = b1;
-        b2_values[k] = b2;
+        b2_values[k] = b2;*/
         b0_sum += b0; b1_sum += b1; b2_sum += b2;
 
         int F0 = 0, F1 = 0, F2 = 0;
@@ -145,9 +145,9 @@ void write_filtered_topology(double *theta, FILE *efile, FILE *bfile, FILE *ffil
                 F2 += (quad == 15);
             }
         }
-        F0_values[k] = F0;
+        /*F0_values[k] = F0;
         F1_values[k] = F1;
-        F2_values[k] = F2;
+        F2_values[k] = F2;*/
         F0_sum += F0; F1_sum += F1; F2_sum += F2;
     }
 
